@@ -349,10 +349,12 @@ h5 {
                     value="{{ componentedc_rounded }}"
                   />
             
-                  <div class="d-flex align-items-center my-2">
-                    <label for="sesiones-input" class="form-label mb-0 me-2">¿Cuántas sesiones en tiempo real dará en esta semana?:</label>
-                    <input type="number" class="form-control w-50" id="sesiones-input" min="1" max="4" />
-                    <button class="btn btn-info col-md-3 mx-2" id="generate-sessions-btn" onclick="generateSessions()">Añadir Sesiones</button>
+                  <div class="row justify-content-end">
+                    <div class="col-auto">
+                      <button class="btn btn-dark mb-2" id="generate-sessions-btn" onclick="generateSessions(1)">
+                        + Añadir Sesión
+                      </button>
+                    </div>
                   </div>
             
                   <!-- Contenedor donde se generarán las tarjetas de sesiones -->
@@ -361,7 +363,7 @@ h5 {
                     <div class="card mb-3 card-custom">
                       <div class="card-body">
                         <span class="close" onclick="removeCard(this)">&times;</span>
-                        <h5 class="card-title">Sesión 1</h5>
+                        <h5 class="card-title">Sesión </h5>
                         <div class="form-group">
                           <div class="dropdown">
                             <button class="btn btn-info dropdown-toggle" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false" onclick="toggleTemas()">
@@ -385,7 +387,7 @@ h5 {
                         </div>
                         <div class="form-group">
                           <label for="duracion-sesion-1">Duración en minutos:</label>
-                          <input type="number" class="form-control" id="duracion-sesion-1" value="{{ componentedc_minutes }}" min="0.25" step="0.25" max="8" />
+                          <input type="number" class="form-control" id="duracion-sesion-1" placeholder="Ingrese los minutos" value="" min="0.25" step="0.25" max="8" />
                         </div>
                       </div>
                     </div>
@@ -678,9 +680,7 @@ h5 {
           <button type="button" class="btn btn-secondary" data-dismiss="modal">
             Cerrar
           </button>
-          <button type="button" class="btn btn-info" onclick="guardarDatos()">
-            Guardar cambios
-          </button>
+          <button type="button" class="btn btn-info" onclick="guardarDatos()">Guardar cambios</button>
         </div>
       </div>
     </div>
@@ -1087,11 +1087,7 @@ function validarContactoConElDocente() {
   let valid = true; // Bandera para la validación general
   const sesionCards = document.querySelectorAll("#sesion-cards .card"); // Recolectar todas las sesiones
 
-  // Si no hay sesiones, retornar error
-  if (sesionCards.length === 0) {
-    showModal("No se ha creado ninguna sesión de 'Contacto con el Docente'.");
-    return false;
-  }
+ 
 
   // Iterar sobre las sesiones de "Contacto con el Docente"
   for (let i = 0; i < sesionCards.length; i++) {
@@ -1157,7 +1153,7 @@ function validarContactoConElDocente() {
 
 
     const semana = document.getElementById("semana-select").value;
-    const sesiones = document.getElementById("sesiones-input").value;
+    
 
     const cards = document.querySelectorAll("#activity-cards .card");
     const actividades = [];
@@ -1228,21 +1224,17 @@ function validarContactoConElDocente() {
 
   
     sessionCards.forEach((card, index) => {
-        const horaInicial = card.querySelector(`#hora-inicial-sesion-${index + 1}`).value;
-        const duracion = parseFloat(card.querySelector(`#duracion-sesion-${index + 1}`).value);
-        const temasSeleccionados = Array.from(card.querySelectorAll('input[type="checkbox"]:checked')).map((checkbox) => checkbox.value);
-
-                // Validación de campos vacíos en sesiones
-
-        
-
-        sesionesDatos.push({
-            Sesion: index + 1,
-            "Fecha y hora Inicial": horaInicial,
-            Duracion: duracion,
-            Temas: temasSeleccionados,
-        });
-        totalDuracion += duracion;
+      const horaInicial = card.querySelector('input[type="datetime-local"]').value;
+      const duracion = parseFloat(card.querySelector('input[type="number"]').value);
+      const temasSeleccionados = Array.from(card.querySelectorAll('input[type="checkbox"]:checked')).map((checkbox) => checkbox.value);
+    
+      sesionesDatos.push({
+        Sesion: index + 1,
+        "Fecha y hora Inicial": horaInicial,
+        Duracion: duracion,
+        Temas: temasSeleccionados,
+      });
+      totalDuracion += duracion;
     });
    
 
@@ -1265,15 +1257,15 @@ function validarContactoConElDocente() {
     const modalidad = document.getElementById("modalidad-select").value;
 
     const datos = {
-        semana: semana,
-        sesiones: sesiones,
-        actividades: actividades,
-        aprendizajeAutonomo: aprendizajeAutonomo, // Incluimos las actividades de Aprendizaje Autónomo
-        sesionesDatos: sesionesDatos,
-        seleccionados: seleccionados,
-        metodologia: metodologia,
-        modalidad: modalidad,
-    };
+    semana: semana,
+    sesiones: 1, // Envía el valor de 'sesiones' como 1
+    actividades: actividades,
+    aprendizajeAutonomo: aprendizajeAutonomo,
+    sesionesDatos: sesionesDatos,
+    seleccionados: seleccionados,
+    metodologia: metodologia,
+    modalidad: modalidad,
+  };
     
     //sacar valor del formulario
 
@@ -1328,7 +1320,7 @@ function validarContactoConElDocente() {
             });
 
             document.getElementById("semana-select").value = "";
-            document.getElementById("sesiones-input").value = "";
+           
 
             cards.forEach((card) => {
                 card.querySelector('textarea[placeholder="Escriba la actividad"]').value = "";
@@ -1407,30 +1399,30 @@ function validarContactoConElDocente() {
     }
   });
 
-  function generateSessions() {
+  function generateSessions(numSessions) {
     // Eliminar tarjetas existentes
     const container = document.getElementById("sesion-cards");
-    while (container.firstChild) {
-      container.removeChild(container.firstChild);
-    }
-
-    const numSessions = document.getElementById("sesiones-input").value;
+    
+    // Calcular el valor de duración por sesión
     const componentedc_rounded = parseFloat(
       document.getElementById("componentedc_rounded").value
     );
-
+  
     // Verificar que numSessions es un número válido
-    if (isNaN(numSessions) || numSessions < 1) {
-      showModal("Por favor, ingrese un número válido de sesiones.");
-      return;
-  } else if (numSessions > 3) {
+    if (numSessions > 3) {
       showModal("No se pueden crear más de 3 sesiones.");
       return;
-  }
+    }
 
+    const existingSessions = container.children.length;
+  if (existingSessions >= 3) {
+    showModal("Ya se han creado 3 sesiones. No se pueden crear más.");
+    return;
+  }
+  
     // Calcular el valor de duración por sesión
     const durationPerSession = (componentedc_rounded*60) / numSessions;
-
+  
     // Crear las cartas
     for (let i = 1; i <= numSessions; i++) {
       const card = document.createElement("div");
@@ -1438,7 +1430,7 @@ function validarContactoConElDocente() {
       card.innerHTML = `
     <div class="card-body">
       <span class="close" onclick="removeCard(this)">&times;</span>
-      <h5 class="card-title">Sesión ${i}</h5>
+      <h5 class="card-title">Sesión </h5>
       <div class="form-group">
         <div class="dropdown">
                 <button
@@ -1487,10 +1479,11 @@ function validarContactoConElDocente() {
           type="number"
           class="form-control"
           id="duracion-sesion-${i}"
-          value="${durationPerSession}"
+          value=""
           min="0.25"
           step="0.25"
           max="8"
+          placeholder="Ingrese los minutos"
         />
       </div>
     </div>
@@ -1498,7 +1491,6 @@ function validarContactoConElDocente() {
       container.appendChild(card);
     }
   }
- 
 
   function toggleChat() {
     var chatIA = document.getElementById("chat-ia");
